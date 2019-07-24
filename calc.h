@@ -57,6 +57,9 @@ class Calculator {
   /* возвращает приоритет оператора */
   int operator_precedence(Token::e_type type);
 
+  /* считает обратную польскую запись */
+  void polish_calc();
+
 public:
   /** Принимает выражение в виде c++ строки **/
   void read(string&& str);

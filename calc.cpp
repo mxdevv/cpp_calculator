@@ -435,15 +435,61 @@ int Calculator::operator_precedence(Token::e_type type) {
   }
 }
 
+void Calculator::polish_calc() {
+  std::vector<Token> stack;
+
+  Token& tok2 = tokens[0], tok3 = tokens[0];
+  for(Token& tok : tokens) {
+    switch(tok.type) {
+      case Token::e_type::FLOAT: 
+        stack.push_back(tok);
+        break;
+      case Token::e_type::OPERATOR_PLUS:
+        tok3 = stack.back(); stack.pop_back();
+        tok2 = stack.back(); stack.pop_back();
+        stack.push_back(*new Token(Token::e_type::FLOAT,
+            tok2.value + tok3.value));
+        break;
+      case Token::e_type::OPERATOR_MINUS:
+        tok3 = stack.back(); stack.pop_back();
+        tok2 = stack.back(); stack.pop_back();
+        stack.push_back(*new Token(Token::e_type::FLOAT,
+            tok2.value - tok3.value));
+        break;
+      case Token::e_type::OPERATOR_DIV:
+        tok3 = stack.back(); stack.pop_back();
+        tok2 = stack.back(); stack.pop_back();
+        stack.push_back(*new Token(Token::e_type::FLOAT,
+            tok2.value / tok3.value));
+        break;
+      case Token::e_type::OPERATOR_MULT:
+        tok3 = stack.back(); stack.pop_back();
+        tok2 = stack.back(); stack.pop_back();
+        stack.push_back(*new Token(Token::e_type::FLOAT,
+            tok2.value * tok3.value));
+        break;
+    }
+    tokens_short_check(stack);
+  }
+}
+
 void Tester::test() {
   Calculator calc;
   //calc.read("-2--1.1111+(-10-2)/3");
-  calc.read("2*(3+4)*5");
+  
+  //calc.read("2+2");
+  //calc.read("(5-7)/2");
+  //calc.read("10/3");
+  //calc.read("-1.1111+(10-2)/3");
+  //calc.read("2*((11+1)/(9-3))");
+  calc.read("2*[(11+1)/(9-3)]");
+
   calc.parse();
   calc.tokens_check();
   calc.tokens_short_check(calc.tokens);
   calc.reverse_polish_notation();
   calc.tokens_short_check(calc.tokens);
+  calc.polish_calc();
 }
 
 int main()
