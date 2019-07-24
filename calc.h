@@ -1,0 +1,76 @@
+
+#ifndef __CALC_H__
+#define __CALC_H__
+
+/* Автор: Визгалов Максим (mxdevv)
+ * Дата начала: 2.07.19
+ * Программа: калькулятор
+ *
+ * Описание: Программа-калькулятор, как вступительное задание для устройства в
+ *   cqg.
+ *
+ * Ширина кода: 80 символов. Используется 2 пробела, вместо табуляции.
+ */
+
+using std::string;
+
+class Token;
+class Calculator;
+class Tester;
+
+class Token {
+public:
+  enum class e_type {
+    NONE, INTEGER, FLOAT, STRING, SYMBOL, OPERATOR_MINUS, OPERATOR_PLUS,
+    OPERATOR_MULT, OPERATOR_DIV, VARIABLE, FUNCTION, UNARY_PLUS, UNARY_MINUS,
+    OPEN_BRACKET, CLOSE_BRACKET
+  };
+  e_type type;
+  double value;
+
+  Token(e_type type, double value)
+    : type(type), value(value)
+  { }
+};
+
+class Calculator {
+  string expression;
+  std::vector<Token> tokens;
+
+  /* парсит строку expression на токены */
+  void parse();
+
+  /* добавляет токен */
+  void add_token(Token::e_type type, int& parse_start_pos, int& parse_end_pos);
+
+  /* выводит токены */
+  void tokens_check();
+
+  /* выводит токены в короткой форме */
+  void tokens_short_check();
+
+public:
+  /** Принимает выражение в виде c++ строки **/
+  void read(string&& str);
+
+  /** Высчитывает выражение из строки в буфере **/
+  void calculate();
+
+  /** Конструктор, как конструктор по-умолчанию + метод read() **/
+  //Calculator(const string& str);
+
+  /** Перегрузка оператора на ввод, аналог read() **/
+  //std::iostream& operator >> (string& str);
+
+  /** Перегрузка оператора на вывод, аналог calculate() **/
+  //std::iostream& operator << (string& str);
+  
+  friend Tester;
+};
+
+class Tester {
+public:
+  static void test();
+};
+
+#endif
