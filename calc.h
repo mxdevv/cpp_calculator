@@ -28,6 +28,8 @@ public:
   e_type type;
   double value;
 
+  Token() = default;
+
   Token(e_type type, double value)
     : type(type), value(value)
   { }
@@ -47,7 +49,13 @@ class Calculator {
   void tokens_check();
 
   /* выводит токены в короткой форме */
-  void tokens_short_check();
+  void tokens_short_check(std::vector<Token>& tokens);
+
+  /* приводит токены в обратную польскую нотацию */
+  void reverse_polish_notation();
+
+  /* возвращает приоритет оператора */
+  int operator_precedence(Token::e_type type);
 
 public:
   /** Принимает выражение в виде c++ строки **/

@@ -64,6 +64,8 @@ void Calculator::parse() {
       case 'A' ... 'Z':
         if (prev_state == e_state::VARIABLE) {
           cur_state = e_state::FUNCTION;
+        } else if (prev_state == e_state::FUNCTION) {
+          /* nothing */
         } else {
           cur_state = e_state::VARIABLE;
           add_token(prev_state, parse_start_pos, parse_end_pos);
@@ -306,9 +308,7 @@ void Calculator::tokens_check() {
   }
 }
 
-void Calculator::tokens_short_check() {
-  std::cerr << "Calculator::tokens_short_check() run\n";
-
+void Calculator::tokens_short_check(std::vector<Token>& tokens) {
   for(Token& tkn : tokens) {
     switch(tkn.type) {
       case Token::e_type::NONE:
@@ -363,12 +363,87 @@ void Calculator::tokens_short_check() {
   std::cerr << '\n';
 }
 
+void Calculator::reverse_polish_notation() {
+  std::cerr << "Calculator::reverse_polish_notation() run\n";
+
+  std::vector<Token> stack, output;
+  Token tok2;
+  for(Token& tok : tokens) {
+    switch(tok.type) {
+      case Token::e_type::FLOAT:
+      case Token::e_type::VARIABLE:
+        output.push_back(tok);
+        break;
+      case Token::e_type::OPERATOR_PLUS:
+      case Token::e_type::OPERATOR_MINUS:
+      case Token::e_type::OPERATOR_MULT:
+      case Token::e_type::OPERATOR_DIV:
+        while(!stack.empty()) {
+          tok2 = stack.back();
+          stack.pop_back();
+          if (operator_precedence(tok.type) <= operator_precedence(tok2.type)) {
+            output.push_back(tok2);
+          } else {
+            stack.push_back(tok2);
+            break;
+          }
+        }
+        stack.push_back(tok);
+        break;
+      case Token::e_type::OPEN_BRACKET:
+        stack.push_back(tok);
+        break;
+      case Token::e_type::CLOSE_BRACKET:
+        while(!stack.empty()) {
+          tok2 = stack.back();
+          stack.pop_back();
+          if (tok2.type != Token::e_type::OPEN_BRACKET) {
+            output.push_back(tok2);
+            continue;
+          }
+          break;
+        }
+        break;
+      case Token::e_type::FUNCTION:
+        break;
+    }
+    std::cerr << "output: ";
+    Calculator::tokens_short_check(output);
+    std::cerr << "stack:  ";
+    Calculator::tokens_short_check(stack);
+    std::cerr << '\n';
+  }
+  while(!stack.empty()) {
+    tok2 = stack.back();
+    stack.pop_back();
+    output.push_back(tok2);
+  }
+
+  tokens = output;
+}
+
+int Calculator::operator_precedence(Token::e_type type) {
+  switch(type) {
+    case Token::e_type::OPERATOR_MULT:
+    case Token::e_type::OPERATOR_DIV:
+      return 2;
+    case Token::e_type::OPERATOR_PLUS:
+    case Token::e_type::OPERATOR_MINUS:
+      return 1;
+    case Token::e_type::OPEN_BRACKET:
+      return 0;
+  }
+}
+
 void Tester::test() {
   Calculator calc;
-  calc.read("-2--1.1111+(-10-2)/3");
+  //calc.read("-2--1.1111+(-10-2)/3");
+  calc.read("2*(3+4)*5");
   calc.parse();
   calc.tokens_check();
-  calc.tokens_short_check();
+  calc.tokens_short_check(calc.tokens);
+  calc.reverse_polish_notation();
+  calc.tokens_short_check(calc.tokens);
 }
 
 int main()
