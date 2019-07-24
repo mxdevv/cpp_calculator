@@ -39,42 +39,47 @@ class Calculator {
   string expression;
   std::vector<Token> tokens;
 
-  /* парсит строку expression на токены */
+  /** парсит строку expression на токены **/
   void parse();
 
-  /* добавляет токен */
+  /** добавляет токен **/
   void add_token(Token::e_type type, int& parse_start_pos, int& parse_end_pos);
 
-  /* выводит токены */
+  /** выводит токены **/
   void tokens_check();
 
-  /* выводит токены в короткой форме */
+  /** выводит токены в короткой форме **/
   void tokens_short_check(std::vector<Token>& tokens);
 
-  /* приводит токены в обратную польскую нотацию */
+  /** приводит токены в обратную польскую нотацию **/
   void reverse_polish_notation();
 
-  /* возвращает приоритет оператора */
+  /** возвращает приоритет оператора **/
   int operator_precedence(Token::e_type type);
 
-  /* считает обратную польскую запись */
-  void polish_calc();
+  /** считает обратную польскую запись **/
+  double polish_calc();
 
 public:
   /** Принимает выражение в виде c++ строки **/
   void read(string&& str);
 
   /** Высчитывает выражение из строки в буфере **/
-  void calculate();
+  double calculate();
 
+  /** Тоже самое + read(...) **/
+  double calculate(string&& str);
+
+  Calculator() = default;
+  
   /** Конструктор, как конструктор по-умолчанию + метод read() **/
-  //Calculator(const string& str);
+  Calculator(string&& str);
 
   /** Перегрузка оператора на ввод, аналог read() **/
-  //std::iostream& operator >> (string& str);
+  void operator << (string&& str);
 
   /** Перегрузка оператора на вывод, аналог calculate() **/
-  //std::iostream& operator << (string& str);
+  void operator >> (double& value);
   
   friend Tester;
 };

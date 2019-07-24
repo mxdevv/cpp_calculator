@@ -19,14 +19,16 @@
 using std::string;
 
 void Calculator::read(string&& str) {
-  std::cerr << "Calculator::read(...) run\n";
+  //std::cerr << "Calculator::read(...) run\n";
 
   expression = str;
   expression.push_back('\0');
 }
 
 void Calculator::parse() {
-  std::cerr << "Calculator::parse() run\n";
+  //std::cerr << "Calculator::parse() run\n";
+  
+  tokens.clear();
 
   using e_state = Token::e_type;
   e_state cur_state = e_state::NONE, prev_state = e_state::NONE;
@@ -119,7 +121,7 @@ void Calculator::parse() {
         break;
     }
 
-    std::cerr << ch << '\n';
+    /*std::cerr << ch << '\n';
 
     std::cerr << "parse_start_pos: " << parse_start_pos << '\n';
     std::cerr << "parse_end_pos: " << parse_end_pos << '\n';
@@ -222,7 +224,8 @@ void Calculator::parse() {
         std::cerr << "CLOSE_BRACKET";
         break;
     }
-    std::cerr << '\n';
+    std::cerr << '\n';AAa
+    */
   }
 }
 
@@ -247,7 +250,6 @@ void Calculator::add_token(Token::e_type type, int& parse_start_pos,
           std::numeric_limits<double>::quiet_NaN()));
       break;
   }
-
 
   parse_start_pos = parse_end_pos;
 }
@@ -364,7 +366,7 @@ void Calculator::tokens_short_check(std::vector<Token>& tokens) {
 }
 
 void Calculator::reverse_polish_notation() {
-  std::cerr << "Calculator::reverse_polish_notation() run\n";
+  //std::cerr << "Calculator::reverse_polish_notation() run\n";
 
   std::vector<Token> stack, output;
   Token tok2;
@@ -407,11 +409,11 @@ void Calculator::reverse_polish_notation() {
       case Token::e_type::FUNCTION:
         break;
     }
-    std::cerr << "output: ";
+    /*std::cerr << "output: ";
     Calculator::tokens_short_check(output);
     std::cerr << "stack:  ";
     Calculator::tokens_short_check(stack);
-    std::cerr << '\n';
+    std::cerr << '\n';*/
   }
   while(!stack.empty()) {
     tok2 = stack.back();
@@ -435,7 +437,7 @@ int Calculator::operator_precedence(Token::e_type type) {
   }
 }
 
-void Calculator::polish_calc() {
+double Calculator::polish_calc() {
   std::vector<Token> stack;
 
   Token& tok2 = tokens[0], tok3 = tokens[0];
@@ -469,12 +471,36 @@ void Calculator::polish_calc() {
             tok2.value * tok3.value));
         break;
     }
-    tokens_short_check(stack);
+    /*Calculator::tokens_short_check(stack);*/
   }
+  return stack.back().value;
+}
+
+Calculator::Calculator(string&& str) 
+    : Calculator() {
+  read(std::move(str));
+}
+
+double Calculator::calculate() {
+  parse();
+  reverse_polish_notation();
+  polish_calc();
+}
+
+double Calculator::calculate(string&& str) {
+  read(std::move(str));
+  return calculate();
+}
+
+void Calculator::operator << (string&& str) {
+  read(std::move(str));
+}
+
+void Calculator::operator >> (double& value) {
+  value = calculate();
 }
 
 void Tester::test() {
-  Calculator calc;
   //calc.read("-2--1.1111+(-10-2)/3");
   
   //calc.read("2+2");
@@ -482,14 +508,24 @@ void Tester::test() {
   //calc.read("10/3");
   //calc.read("-1.1111+(10-2)/3");
   //calc.read("2*((11+1)/(9-3))");
-  calc.read("2*[(11+1)/(9-3)]");
+  //calc.read("2*[(11+1)/(9-3)]");
+  
+  Calculator calc("2+2");
 
-  calc.parse();
-  calc.tokens_check();
-  calc.tokens_short_check(calc.tokens);
-  calc.reverse_polish_notation();
-  calc.tokens_short_check(calc.tokens);
-  calc.polish_calc();
+  std::cout << std::fixed;
+  std::cout.precision(3);
+
+  std::cout << "result: " << calc.calculate() << '\n';
+  std::cout << "result: " << calc.calculate("(5-7)/2") << '\n';
+
+  calc << "10/3";
+  double tmp;
+  calc >> tmp;
+  std::cout << "result: " << tmp << '\n';
+
+  std::cout << "result: " << calc.calculate("-1.1111+(10-2)/3") << '\n';
+  std::cout << "result: " << calc.calculate("2*((11+1)/(9-3))") << '\n';
+  std::cout << "result: " << calc.calculate("2*[(11+1)/(9-3)]") << '\n';
 }
 
 int main()
