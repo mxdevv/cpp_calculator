@@ -16,6 +16,8 @@
 #include <limits>
 #include <string>
 #include <vector>
+#include <map>
+#include <math.h>
 
 #include "calc.h"
 
@@ -68,12 +70,8 @@ void Calculator::parse() {
         break;
       case 'a' ... 'z':
       case 'A' ... 'Z':
-        if (prev_state == Token::e_type::VARIABLE) {
-          cur_state = Token::e_type::FUNCTION;
-        } else if (prev_state == Token::e_type::FUNCTION) {
-          /* nothing */
-        } else {
-          cur_state = Token::e_type::VARIABLE;
+        if (prev_state != Token::e_type::STRING) {
+          cur_state = Token::e_type::STRING;
           add_token(prev_state, parse_start_pos, parse_end_pos);
         }
         break;
@@ -83,7 +81,8 @@ void Calculator::parse() {
           cur_state = Token::e_type::UNARY_PLUS;
           add_token(prev_state, parse_start_pos, parse_end_pos);
         } else if (prev_state == Token::e_type::INTEGER
-            || prev_state == Token::e_type::FLOAT) {
+            || prev_state == Token::e_type::FLOAT
+            || prev_state == Token::e_type::STRING) {
           cur_state = Token::e_type::OPERATOR_PLUS;
           add_token(prev_state, parse_start_pos, parse_end_pos);
         } else {
@@ -97,7 +96,8 @@ void Calculator::parse() {
           cur_state = Token::e_type::UNARY_MINUS;
           add_token(prev_state, parse_start_pos, parse_end_pos);
         } else if (prev_state == Token::e_type::INTEGER
-            || prev_state == Token::e_type::FLOAT) {
+            || prev_state == Token::e_type::FLOAT
+            || prev_state == Token::e_type::STRING) {
           cur_state = Token::e_type::OPERATOR_MINUS;
           add_token(prev_state, parse_start_pos, parse_end_pos);
         } else {
@@ -138,6 +138,9 @@ void Calculator::parse() {
 void Calculator::precheck() {
   for(Token& tok : tokens) {
     switch(tok.type) {
+      case Token::e_type::STRING:
+        throw precheck_unidentified_string_exception();
+        break;
       case Token::e_type::UNARY_PLUS:
         throw precheck_unary_plus_exception();
         break;
@@ -150,6 +153,7 @@ void Calculator::precheck() {
 
 void Calculator::add_token(Token::e_type type, int& parse_start_pos,
     int& parse_end_pos) {
+
   double val;
   switch(type) {
     case Token::e_type::NONE: {
@@ -172,60 +176,6 @@ void Calculator::add_token(Token::e_type type, int& parse_start_pos,
   parse_start_pos = parse_end_pos;
 }
 
-void Calculator::tokens_check(std::vector<Token>& tokens) {
-  for(Token& tkn : tokens) {
-    std::cerr << "Token: ";
-    switch(tkn.type) {
-      case Token::e_type::NONE:
-        std::cerr << "NONE";
-        break;
-      case Token::e_type::INTEGER:
-        std::cerr << "INTEGER";
-        break;
-      case Token::e_type::FLOAT:
-        std::cerr << "FLOAT";
-        break;
-      case Token::e_type::STRING:
-        std::cerr << "STRING";
-        break;
-      case Token::e_type::SYMBOL:
-        std::cerr << "SYMBOL";
-        break;
-      case Token::e_type::OPERATOR_PLUS:
-        std::cerr << "OPERATOR_PLUS";
-        break;
-      case Token::e_type::OPERATOR_MINUS:
-        std::cerr << "OPERATOR_MINUS";
-        break;
-      case Token::e_type::OPERATOR_MULT:
-        std::cerr << "OPERATOR_MULT";
-        break;
-      case Token::e_type::OPERATOR_DIV:
-        std::cerr << "OPERATOR_DIV";
-        break;
-      case Token::e_type::VARIABLE:
-        std::cerr << "VARIABLE";
-        break;
-      case Token::e_type::FUNCTION:
-        std::cerr << "FUNCTION";
-        break;
-      case Token::e_type::UNARY_PLUS:
-        std::cerr << "UNARY_PLUS";
-        break;
-      case Token::e_type::UNARY_MINUS:
-        std::cerr << "UNARY_MINUS";
-        break;
-      case Token::e_type::OPEN_BRACKET:
-        std::cerr << "OPEN_BRACKET";
-        break;
-      case Token::e_type::CLOSE_BRACKET:
-        std::cerr << "CLOSE_BRACKET";
-        break;
-    }
-    std::cerr << ", value: " << tkn.value << '\n';
-  }
-}
-
 void Calculator::tokens_short_check(std::vector<Token>& tokens) {
   for(Token& tkn : tokens) {
     switch(tkn.type) {
@@ -233,17 +183,17 @@ void Calculator::tokens_short_check(std::vector<Token>& tokens) {
         std::cerr << '?';
         break;
       case Token::e_type::INTEGER:
-        std::cerr << '$';
+        std::cerr << 'I';
         std::cerr << tkn.value;
         break;
       case Token::e_type::FLOAT:
         std::cerr << tkn.value;
         break;
       case Token::e_type::STRING:
-        std::cerr << '#';
+        std::cerr << 'S';
         break;
       case Token::e_type::SYMBOL:
-        std::cerr << '@';
+        std::cerr << 'C';
         break;
       case Token::e_type::OPERATOR_PLUS:
         std::cerr << '+';
@@ -257,11 +207,16 @@ void Calculator::tokens_short_check(std::vector<Token>& tokens) {
       case Token::e_type::OPERATOR_DIV:
         std::cerr << '\\';
         break;
+      case Token::e_type::CONSTANT:
+        std::cerr << '[';
+        std::cerr << tkn.value;
+        std::cerr << ']';
+        break;
       case Token::e_type::VARIABLE:
-        std::cerr << '&';
+        std::cerr << 'V';
         break;
       case Token::e_type::FUNCTION:
-        std::cerr << '!';
+        std::cerr << 'F';
         break;
       case Token::e_type::UNARY_PLUS:
         std::cerr << "U+";
@@ -287,7 +242,7 @@ void Calculator::reverse_polish_notation() {
   for(Token& tok : tokens) {
     switch(tok.type) {
       case Token::e_type::FLOAT:
-      case Token::e_type::VARIABLE:
+      case Token::e_type::CONSTANT:
         output.push_back(tok);
         break;
       case Token::e_type::OPERATOR_PLUS:
@@ -324,11 +279,6 @@ void Calculator::reverse_polish_notation() {
         }
         break;
     }
-    /*std::cerr << "output: ";
-    Calculator::tokens_short_check(output);
-    std::cerr << "stack:  ";
-    Calculator::tokens_short_check(stack);
-    std::cerr << '\n';*/
   }
   while(!stack.empty()) {
     tok2 = stack.back();
@@ -373,7 +323,8 @@ double Calculator::polish_calc() {
   Token tok2, tok3;
   for(Token& tok : tokens) {
     switch(tok.type) {
-      case Token::e_type::FLOAT: 
+      case Token::e_type::FLOAT:
+      case Token::e_type::CONSTANT:
         stack.push_back(tok);
         break;
       case Token::e_type::OPERATOR_PLUS:

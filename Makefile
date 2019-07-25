@@ -7,3 +7,6 @@ all:
 
 test:
 	$(CC) $(TEST).cpp -o $(TEST) -lgtest -std=c++17
+
+clear:
+	rm $(MAIN) $(TEST)

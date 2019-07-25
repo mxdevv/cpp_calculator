@@ -21,8 +21,8 @@ class Token {
 public:
   enum class e_type {
     NONE, INTEGER, FLOAT, STRING, SYMBOL, OPERATOR_MINUS, OPERATOR_PLUS,
-    OPERATOR_MULT, OPERATOR_DIV, VARIABLE, FUNCTION, UNARY_PLUS, UNARY_MINUS,
-    OPEN_BRACKET, CLOSE_BRACKET
+    OPERATOR_MULT, OPERATOR_DIV, CONSTANT, VARIABLE, FUNCTION, UNARY_PLUS,
+    UNARY_MINUS, OPEN_BRACKET, CLOSE_BRACKET
   };
   e_type type;
   double value;
@@ -52,9 +52,6 @@ class Calculator {
 
   /** добавляет токен **/
   void add_token(Token::e_type type, int& parse_start_pos, int& parse_end_pos);
-
-  /** выводит токены **/
-  void tokens_check(std::vector<Token>& tokens);
 
   /** выводит токены в короткой форме **/
   void tokens_short_check(std::vector<Token>& tokens);
@@ -90,7 +87,8 @@ public:
 
   /** Перегрузка оператора на вывод, аналог calculate() **/
   void operator >> (double& value);
-
+  
+  class precheck_unidentified_string_exception { };
   class precheck_unary_plus_exception { };
   class precheck_unary_minus_exception { };
   class reverse_polish_notation_brackets_exception { };
