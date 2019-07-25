@@ -370,7 +370,7 @@ int Calculator::operator_precedence(Token::e_type type) {
 double Calculator::polish_calc() {
   std::vector<Token> stack;
 
-  Token& tok2 = tokens[0], tok3 = tokens[0];
+  Token tok2, tok3;
   for(Token& tok : tokens) {
     switch(tok.type) {
       case Token::e_type::FLOAT: 
@@ -413,7 +413,6 @@ double Calculator::polish_calc() {
             tok2.value * tok3.value));
         break;
     }
-    /*Calculator::tokens_short_check(stack);*/
   }
   
   if (debug) {
