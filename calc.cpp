@@ -1,3 +1,6 @@
+#ifndef __CALC_CPP__
+#define __CALC_CPP__
+
 /* Автор: Визгалов Максим (mxdevv)
  * Дата начала: 23.07.19
  * Программа: калькулятор
@@ -445,6 +448,11 @@ double Calculator::calculate(std::string&& str) {
   return calculate();
 }
 
+double Calculator::calculate(std::string& str) {
+  read(str);
+  return calculate();
+}
+
 void Calculator::operator << (std::string&& str) {
   read(std::move(str));
 }
@@ -453,27 +461,4 @@ void Calculator::operator >> (double& value) {
   value = calculate();
 }
 
-int main()
-{
-  Calculator calc;
-  std::string expression;
-  while(1) {
-    std::cout << "> ";
-    std::getline(std::cin, expression);
-    try {
-      calc.read(expression);
-      std::cout << ": " << calc.calculate() << '\n';
-    } catch (Calculator::polish_calc_exception& e) {
-      std::cerr << "Ошибка в вычислениях. Проверьте выражение. (Функция"
-                   " polish_calc() вернула исключение polish_calc_exception)\n";
-    } catch (Calculator::precheck_unary_plus_exception& e2) {
-      std::cerr << "Ошибка в разборе функции. Проверьте выражение. Возможно, вы"
-                   " ввели лишний знак сложения. (Функция precheck() вернула" 
-                   " исключение precheck_unary_plus_exception)\n";
-    } catch (Calculator::precheck_unary_minus_exception& e3) {
-      std::cerr << "Ошибка в разборе функции. Проверьте выражение. Возможно, вы"
-                   " ввели лишний знак вычитания. (Функция precheck() вернула" 
-                   " исключение precheck_unary_plus_exception)\n";
-    }
-  }
-}
+#endif // __CALC_CPP__

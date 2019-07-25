@@ -1,4 +1,3 @@
-
 #ifndef __CALC_H__
 #define __CALC_H__
 
@@ -79,6 +78,7 @@ public:
 
   /** Тоже самое + read(...) **/
   double calculate(std::string&& str);
+  double calculate(std::string& str);
 
   Calculator() = default;
   
@@ -96,4 +96,4 @@ public:
   class precheck_unary_minus_exception { };
 };
 
-#endif
+#endif // __CALC_H__
