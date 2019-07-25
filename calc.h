@@ -3,7 +3,7 @@
 #define __CALC_H__
 
 /* Автор: Визгалов Максим (mxdevv)
- * Дата начала: 2.07.19
+ * Дата начала: 23.07.19
  * Программа: калькулятор
  *
  * Описание: Программа-калькулятор, как вступительное задание для устройства в
@@ -12,7 +12,7 @@
  * Ширина кода: 80 символов. Используется 2 пробела, вместо табуляции.
  */
 
-using std::string;
+#include <string>
 
 class Token;
 class Calculator;
@@ -36,17 +36,26 @@ public:
 };
 
 class Calculator {
-  string expression;
+  std::string expression;
   std::vector<Token> tokens;
+
+  enum class e_state {
+    NONE, READED, PARSED, POLISH_NOTATION_COMPLETE
+  };
+  e_state state = e_state::NONE;
+  bool debug = false;
 
   /** парсит строку expression на токены **/
   void parse();
+
+  /** помогает распознать некорректное выражение **/
+  void precheck();
 
   /** добавляет токен **/
   void add_token(Token::e_type type, int& parse_start_pos, int& parse_end_pos);
 
   /** выводит токены **/
-  void tokens_check();
+  void tokens_check(std::vector<Token>& tokens);
 
   /** выводит токены в короткой форме **/
   void tokens_short_check(std::vector<Token>& tokens);
@@ -62,31 +71,29 @@ class Calculator {
 
 public:
   /** Принимает выражение в виде c++ строки **/
-  void read(string&& str);
+  void read(std::string&& str);
+  void read(std::string& str);
 
   /** Высчитывает выражение из строки в буфере **/
   double calculate();
 
   /** Тоже самое + read(...) **/
-  double calculate(string&& str);
+  double calculate(std::string&& str);
 
   Calculator() = default;
   
   /** Конструктор, как конструктор по-умолчанию + метод read() **/
-  Calculator(string&& str);
+  Calculator(std::string&& str);
 
   /** Перегрузка оператора на ввод, аналог read() **/
-  void operator << (string&& str);
+  void operator << (std::string&& str);
 
   /** Перегрузка оператора на вывод, аналог calculate() **/
   void operator >> (double& value);
-  
-  friend Tester;
-};
 
-class Tester {
-public:
-  static void test();
+  class polish_calc_exception { };
+  class precheck_unary_plus_exception { };
+  class precheck_unary_minus_exception { };
 };
 
 #endif

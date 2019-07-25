@@ -1,5 +1,5 @@
 /* Автор: Визгалов Максим (mxdevv)
- * Дата начала: 2.07.19
+ * Дата начала: 23.07.19
  * Программа: калькулятор
  *
  * Описание: Программа-калькулятор, как вступительное задание для устройства в
@@ -16,22 +16,23 @@
 
 #include "calc.h"
 
-using std::string;
-
-void Calculator::read(string&& str) {
-  //std::cerr << "Calculator::read(...) run\n";
-
+void Calculator::read(std::string&& str) {
   expression = str;
   expression.push_back('\0');
+  state = e_state::READED;
+}
+
+void Calculator::read(std::string& str) {
+  expression = str;
+  expression.push_back('\0');
+  state = e_state::READED;
 }
 
 void Calculator::parse() {
-  //std::cerr << "Calculator::parse() run\n";
-  
   tokens.clear();
 
-  using e_state = Token::e_type;
-  e_state cur_state = e_state::NONE, prev_state = e_state::NONE;
+  Token::e_type cur_state = Token::e_type::NONE,
+      prev_state = Token::e_type::NONE;
 
   int parse_start_pos = 0, parse_end_pos = 0;
 
@@ -41,197 +42,111 @@ void Calculator::parse() {
     prev_state = cur_state;
 
     switch(ch) {
-      case 0 ... 32:
-        cur_state = e_state::NONE;
+      case 0:
+        cur_state = Token::e_type::NONE;
         add_token(prev_state, parse_start_pos, parse_end_pos);
         break;
       case '0' ... '9':
-        if (prev_state == e_state::INTEGER
-            || prev_state == e_state::UNARY_PLUS
-            || prev_state == e_state::UNARY_MINUS) {
-          cur_state = e_state::INTEGER;
-        } else if (prev_state == e_state::FLOAT) {
+        if (prev_state == Token::e_type::INTEGER
+            || prev_state == Token::e_type::UNARY_PLUS
+            || prev_state == Token::e_type::UNARY_MINUS) {
+          cur_state = Token::e_type::INTEGER;
+        } else if (prev_state == Token::e_type::FLOAT) {
           /* nothing */
         } else {
-          cur_state = e_state::INTEGER;
+          cur_state = Token::e_type::INTEGER;
           add_token(prev_state, parse_start_pos, parse_end_pos);
         }
         break;
       case '.':
-        if (prev_state == e_state::INTEGER) {
-          cur_state = e_state::FLOAT;
+        if (prev_state == Token::e_type::INTEGER) {
+          cur_state = Token::e_type::FLOAT;
         }
         break;
       case 'a' ... 'z':
       case 'A' ... 'Z':
-        if (prev_state == e_state::VARIABLE) {
-          cur_state = e_state::FUNCTION;
-        } else if (prev_state == e_state::FUNCTION) {
+        if (prev_state == Token::e_type::VARIABLE) {
+          cur_state = Token::e_type::FUNCTION;
+        } else if (prev_state == Token::e_type::FUNCTION) {
           /* nothing */
         } else {
-          cur_state = e_state::VARIABLE;
+          cur_state = Token::e_type::VARIABLE;
           add_token(prev_state, parse_start_pos, parse_end_pos);
         }
         break;
       case '+':
-        if (prev_state == e_state::OPERATOR_PLUS
-            || prev_state == e_state::OPERATOR_MINUS) {
-          cur_state = e_state::UNARY_PLUS;
+        if (prev_state == Token::e_type::OPERATOR_PLUS
+            || prev_state == Token::e_type::OPERATOR_MINUS) {
+          cur_state = Token::e_type::UNARY_PLUS;
           add_token(prev_state, parse_start_pos, parse_end_pos);
-        } else if (prev_state == e_state::INTEGER
-            || prev_state == e_state::FLOAT) {
-          cur_state = e_state::OPERATOR_PLUS;
+        } else if (prev_state == Token::e_type::INTEGER
+            || prev_state == Token::e_type::FLOAT) {
+          cur_state = Token::e_type::OPERATOR_PLUS;
           add_token(prev_state, parse_start_pos, parse_end_pos);
         } else {
           add_token(prev_state, parse_start_pos, parse_end_pos);
-          cur_state = e_state::UNARY_PLUS;
+          cur_state = Token::e_type::UNARY_PLUS;
         }
         break;
       case '-':
-        if (prev_state == e_state::OPERATOR_PLUS
-            || prev_state == e_state::OPERATOR_MINUS) {
-          cur_state = e_state::UNARY_MINUS;
+        if (prev_state == Token::e_type::OPERATOR_PLUS
+            || prev_state == Token::e_type::OPERATOR_MINUS) {
+          cur_state = Token::e_type::UNARY_MINUS;
           add_token(prev_state, parse_start_pos, parse_end_pos);
-        } else if (prev_state == e_state::INTEGER
-            || prev_state == e_state::FLOAT) {
-          cur_state = e_state::OPERATOR_MINUS;
+        } else if (prev_state == Token::e_type::INTEGER
+            || prev_state == Token::e_type::FLOAT) {
+          cur_state = Token::e_type::OPERATOR_MINUS;
           add_token(prev_state, parse_start_pos, parse_end_pos);
         } else {
           add_token(prev_state, parse_start_pos, parse_end_pos);
-          cur_state = e_state::UNARY_MINUS;
+          cur_state = Token::e_type::UNARY_MINUS;
         }
         break;
       case '*':
-        cur_state = e_state::OPERATOR_MULT;
+        cur_state = Token::e_type::OPERATOR_MULT;
         add_token(prev_state, parse_start_pos, parse_end_pos);
         break;
       case '/':
-        cur_state = e_state::OPERATOR_DIV;
+        cur_state = Token::e_type::OPERATOR_DIV;
         add_token(prev_state, parse_start_pos, parse_end_pos);
         break;
       case '(':
       case '[':
-        cur_state = e_state::OPEN_BRACKET;
+        cur_state = Token::e_type::OPEN_BRACKET;
         add_token(prev_state, parse_start_pos, parse_end_pos);
         break;
       case ')':
       case ']':
-        cur_state = e_state::CLOSE_BRACKET;
+        cur_state = Token::e_type::CLOSE_BRACKET;
         add_token(prev_state, parse_start_pos, parse_end_pos);
         break;
     }
+  }
 
-    /*std::cerr << ch << '\n';
+  if (debug) {
+    std::cerr << "[parse log]\n";
+    std::cerr << "tokens: ";
+    tokens_short_check(tokens);
+  }
 
-    std::cerr << "parse_start_pos: " << parse_start_pos << '\n';
-    std::cerr << "parse_end_pos: " << parse_end_pos << '\n';
+  state = e_state::PARSED;
+}
 
-    std::cerr << "prev_state:  ";
-    switch(prev_state) {
-      case e_state::NONE:
-        std::cerr << "NONE";
+void Calculator::precheck() {
+  for(Token& tok : tokens) {
+    switch(tok.type) {
+      case Token::e_type::UNARY_PLUS:
+        throw precheck_unary_plus_exception();
         break;
-      case e_state::INTEGER:
-        std::cerr << "INTEGER";
-        break;
-      case e_state::FLOAT:
-        std::cerr << "FLOAT";
-        break;
-      case e_state::STRING:
-        std::cerr << "STRING";
-        break;
-      case e_state::SYMBOL:
-        std::cerr << "SYMBOL";
-        break;
-      case e_state::OPERATOR_PLUS:
-        std::cerr << "OPERATOR_PLUS";
-        break;
-      case e_state::OPERATOR_MINUS:
-        std::cerr << "OPERATOR_MINUS";
-        break;
-      case e_state::OPERATOR_MULT:
-        std::cerr << "OPERATOR_MULT";
-        break;
-      case e_state::OPERATOR_DIV:
-        std::cerr << "OPERATOR_DIV";
-        break;
-      case e_state::VARIABLE:
-        std::cerr << "VARIABLE";
-        break;
-      case e_state::FUNCTION:
-        std::cerr << "FUNCTION";
-        break;
-      case e_state::UNARY_PLUS:
-        std::cerr << "UNARY_PLUS";
-        break;
-      case e_state::UNARY_MINUS:
-        std::cerr << "UNARY_MINUS";
-        break;
-      case e_state::OPEN_BRACKET:
-        std::cerr << "OPEN_BRACKET";
-        break;
-      case e_state::CLOSE_BRACKET:
-        std::cerr << "CLOSE_BRACKET";
+      case Token::e_type::UNARY_MINUS:
+        throw precheck_unary_minus_exception();
         break;
     }
-    std::cerr << '\n';
-
-    std::cerr << "cur_state:  ";
-    switch(cur_state) {
-      case e_state::NONE:
-        std::cerr << "NONE";
-        break;
-      case e_state::INTEGER:
-        std::cerr << "INTEGER";
-        break;
-      case e_state::FLOAT:
-        std::cerr << "FLOAT";
-        break;
-      case e_state::STRING:
-        std::cerr << "STRING";
-        break;
-      case e_state::SYMBOL:
-        std::cerr << "SYMBOL";
-        break;
-      case e_state::OPERATOR_PLUS:
-        std::cerr << "OPERATOR_PLUS";
-        break;
-      case e_state::OPERATOR_MINUS:
-        std::cerr << "OPERATOR_MINUS";
-        break;
-      case e_state::OPERATOR_MULT:
-        std::cerr << "OPERATOR_MULT";
-        break;
-      case e_state::OPERATOR_DIV:
-        std::cerr << "OPERATOR_DIV";
-        break;
-      case e_state::VARIABLE:
-        std::cerr << "VARIABLE";
-        break;
-      case e_state::FUNCTION:
-        std::cerr << "FUNCTION";
-        break;
-      case e_state::UNARY_PLUS:
-        std::cerr << "UNARY_PLUS";
-        break;
-      case e_state::UNARY_MINUS:
-        std::cerr << "UNARY_MINUS";
-        break;
-      case e_state::OPEN_BRACKET:
-        std::cerr << "OPEN_BRACKET";
-        break;
-      case e_state::CLOSE_BRACKET:
-        std::cerr << "CLOSE_BRACKET";
-        break;
-    }
-    std::cerr << '\n';AAa
-    */
   }
 }
 
 void Calculator::add_token(Token::e_type type, int& parse_start_pos,
     int& parse_end_pos) {
-  
   double val;
   switch(type) {
     case Token::e_type::NONE: {
@@ -254,9 +169,7 @@ void Calculator::add_token(Token::e_type type, int& parse_start_pos,
   parse_start_pos = parse_end_pos;
 }
 
-void Calculator::tokens_check() {
-  std::cerr << "Calculator::tokens_check() run\n";
-
+void Calculator::tokens_check(std::vector<Token>& tokens) {
   for(Token& tkn : tokens) {
     std::cerr << "Token: ";
     switch(tkn.type) {
@@ -348,10 +261,10 @@ void Calculator::tokens_short_check(std::vector<Token>& tokens) {
         std::cerr << '!';
         break;
       case Token::e_type::UNARY_PLUS:
-        std::cerr << "UNARY_PLUS";
+        std::cerr << "U+";
         break;
       case Token::e_type::UNARY_MINUS:
-        std::cerr << "UNARY_MINUS";
+        std::cerr << "U-";
         break;
       case Token::e_type::OPEN_BRACKET:
         std::cerr << "(";
@@ -366,8 +279,6 @@ void Calculator::tokens_short_check(std::vector<Token>& tokens) {
 }
 
 void Calculator::reverse_polish_notation() {
-  //std::cerr << "Calculator::reverse_polish_notation() run\n";
-
   std::vector<Token> stack, output;
   Token tok2;
   for(Token& tok : tokens) {
@@ -422,6 +333,21 @@ void Calculator::reverse_polish_notation() {
   }
 
   tokens = output;
+
+  if (debug) {
+    std::cerr << "[reverse_polish_notation log]\n";
+
+    std::cerr << "stack: ";
+    tokens_short_check(stack);
+
+    std::cerr << "output: ";
+    tokens_short_check(output);
+
+    std::cerr << "tokens: ";
+    tokens_short_check(tokens);
+  }
+
+  state = e_state::POLISH_NOTATION_COMPLETE;
 }
 
 int Calculator::operator_precedence(Token::e_type type) {
@@ -447,24 +373,36 @@ double Calculator::polish_calc() {
         stack.push_back(tok);
         break;
       case Token::e_type::OPERATOR_PLUS:
+        if (stack.size() < 2) {
+          throw polish_calc_exception();
+        }
         tok3 = stack.back(); stack.pop_back();
         tok2 = stack.back(); stack.pop_back();
         stack.push_back(*new Token(Token::e_type::FLOAT,
             tok2.value + tok3.value));
         break;
       case Token::e_type::OPERATOR_MINUS:
+        if (stack.size() < 2) {
+          throw polish_calc_exception();
+        }
         tok3 = stack.back(); stack.pop_back();
         tok2 = stack.back(); stack.pop_back();
         stack.push_back(*new Token(Token::e_type::FLOAT,
             tok2.value - tok3.value));
         break;
       case Token::e_type::OPERATOR_DIV:
+        if (stack.size() < 2) {
+          throw polish_calc_exception();
+        }
         tok3 = stack.back(); stack.pop_back();
         tok2 = stack.back(); stack.pop_back();
         stack.push_back(*new Token(Token::e_type::FLOAT,
             tok2.value / tok3.value));
         break;
       case Token::e_type::OPERATOR_MULT:
+        if (stack.size() < 2) {
+          throw polish_calc_exception();
+        }
         tok3 = stack.back(); stack.pop_back();
         tok2 = stack.back(); stack.pop_back();
         stack.push_back(*new Token(Token::e_type::FLOAT,
@@ -473,26 +411,41 @@ double Calculator::polish_calc() {
     }
     /*Calculator::tokens_short_check(stack);*/
   }
-  return stack.back().value;
+  
+  if (debug) {
+    std::cerr << "[polish_calc log]\n";
+
+    std::cerr << "tokens: ";
+    tokens_short_check(tokens);
+
+    std::cerr << "stack: ";
+    tokens_short_check(stack);
+  }
+
+  if (stack.size() > 0)
+    return stack.back().value;
+  else
+    throw polish_calc_exception();
 }
 
-Calculator::Calculator(string&& str) 
+Calculator::Calculator(std::string&& str) 
     : Calculator() {
   read(std::move(str));
 }
 
 double Calculator::calculate() {
   parse();
+  precheck();
   reverse_polish_notation();
   polish_calc();
 }
 
-double Calculator::calculate(string&& str) {
+double Calculator::calculate(std::string&& str) {
   read(std::move(str));
   return calculate();
 }
 
-void Calculator::operator << (string&& str) {
+void Calculator::operator << (std::string&& str) {
   read(std::move(str));
 }
 
@@ -500,35 +453,27 @@ void Calculator::operator >> (double& value) {
   value = calculate();
 }
 
-void Tester::test() {
-  //calc.read("-2--1.1111+(-10-2)/3");
-  
-  //calc.read("2+2");
-  //calc.read("(5-7)/2");
-  //calc.read("10/3");
-  //calc.read("-1.1111+(10-2)/3");
-  //calc.read("2*((11+1)/(9-3))");
-  //calc.read("2*[(11+1)/(9-3)]");
-  
-  Calculator calc("2+2");
-
-  std::cout << std::fixed;
-  std::cout.precision(3);
-
-  std::cout << "result: " << calc.calculate() << '\n';
-  std::cout << "result: " << calc.calculate("(5-7)/2") << '\n';
-
-  calc << "10/3";
-  double tmp;
-  calc >> tmp;
-  std::cout << "result: " << tmp << '\n';
-
-  std::cout << "result: " << calc.calculate("-1.1111+(10-2)/3") << '\n';
-  std::cout << "result: " << calc.calculate("2*((11+1)/(9-3))") << '\n';
-  std::cout << "result: " << calc.calculate("2*[(11+1)/(9-3)]") << '\n';
-}
-
 int main()
 {
-  Tester::test();
+  Calculator calc;
+  std::string expression;
+  while(1) {
+    std::cout << "> ";
+    std::getline(std::cin, expression);
+    try {
+      calc.read(expression);
+      std::cout << ": " << calc.calculate() << '\n';
+    } catch (Calculator::polish_calc_exception& e) {
+      std::cerr << "Ошибка в вычислениях. Проверьте выражение. (Функция"
+                   " polish_calc() вернула исключение polish_calc_exception)\n";
+    } catch (Calculator::precheck_unary_plus_exception& e2) {
+      std::cerr << "Ошибка в разборе функции. Проверьте выражение. Возможно, вы"
+                   " ввели лишний знак сложения. (Функция precheck() вернула" 
+                   " исключение precheck_unary_plus_exception)\n";
+    } catch (Calculator::precheck_unary_minus_exception& e3) {
+      std::cerr << "Ошибка в разборе функции. Проверьте выражение. Возможно, вы"
+                   " ввели лишний знак вычитания. (Функция precheck() вернула" 
+                   " исключение precheck_unary_plus_exception)\n";
+    }
+  }
 }
