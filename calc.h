@@ -91,9 +91,10 @@ public:
   /** Перегрузка оператора на вывод, аналог calculate() **/
   void operator >> (double& value);
 
-  class polish_calc_exception { };
   class precheck_unary_plus_exception { };
   class precheck_unary_minus_exception { };
+  class reverse_polish_notation_brackets_exception { };
+  class polish_calc_exception { };
 };
 
 #endif // __CALC_H__

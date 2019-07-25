@@ -310,17 +310,18 @@ void Calculator::reverse_polish_notation() {
         stack.push_back(tok);
         break;
       case Token::e_type::CLOSE_BRACKET:
-        while(!stack.empty()) {
-          tok2 = stack.back();
-          stack.pop_back();
-          if (tok2.type != Token::e_type::OPEN_BRACKET) {
-            output.push_back(tok2);
-            continue;
+        while(1) {
+          if (!stack.empty()) {
+            tok2 = stack.back();
+            stack.pop_back();
+            if (tok2.type != Token::e_type::OPEN_BRACKET) {
+              output.push_back(tok2);
+              continue;
+            }
+            break;
           }
-          break;
+          throw reverse_polish_notation_brackets_exception();
         }
-        break;
-      case Token::e_type::FUNCTION:
         break;
     }
     /*std::cerr << "output: ";

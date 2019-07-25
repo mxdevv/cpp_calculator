@@ -25,14 +25,18 @@ int main()
     } catch (Calculator::polish_calc_exception& e) {
       std::cerr << "Ошибка в вычислениях. Проверьте выражение. (Функция"
                    " polish_calc() вернула исключение polish_calc_exception)\n";
-    } catch (Calculator::precheck_unary_plus_exception& e2) {
+    } catch (Calculator::precheck_unary_plus_exception& e) {
       std::cerr << "Ошибка в разборе функции. Проверьте выражение. Возможно, вы"
                    " ввели лишний знак сложения. (Функция precheck() вернула" 
                    " исключение precheck_unary_plus_exception)\n";
-    } catch (Calculator::precheck_unary_minus_exception& e3) {
+    } catch (Calculator::precheck_unary_minus_exception& e) {
       std::cerr << "Ошибка в разборе функции. Проверьте выражение. Возможно, вы"
                    " ввели лишний знак вычитания. (Функция precheck() вернула" 
                    " исключение precheck_unary_plus_exception)\n";
+    } catch (Calculator::reverse_polish_notation_brackets_exception& e) {
+      std::cerr << "Ошибка в подсчёте баланса скобок. Проверьте выражение."
+                   " (Функция reverse_polish_notation() вернула исключение"
+                   " reverse_polish_notation_brackets_exception)\n";
     }
   }
 }
