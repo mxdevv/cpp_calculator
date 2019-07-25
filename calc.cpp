@@ -154,6 +154,11 @@ void Calculator::precheck() {
 void Calculator::add_token(Token::e_type type, int& parse_start_pos,
     int& parse_end_pos) {
 
+  const static std::map<std::string, Token> string_is {
+    { "pi", { Token::e_type::CONSTANT, M_PI } },
+    { "e", { Token::e_type::CONSTANT, M_E } }
+  };
+
   double val;
   switch(type) {
     case Token::e_type::NONE: {
@@ -165,6 +170,17 @@ void Calculator::add_token(Token::e_type type, int& parse_start_pos,
       ss << expression.substr(parse_start_pos, parse_end_pos - parse_start_pos);
       ss >> val;
       tokens.push_back(*new Token(Token::e_type::FLOAT, val));
+      break;
+    }
+    case Token::e_type::STRING: {
+      auto it = string_is.find(expression.substr(parse_start_pos,
+          parse_end_pos - parse_start_pos));
+      if (it != string_is.end()) {
+        tokens.push_back(it->second);
+      } else {
+        tokens.push_back(*new Token(Token::e_type::STRING,
+            std::numeric_limits<double>::quiet_NaN()));
+      }
       break;
     }
     default:
