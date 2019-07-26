@@ -40,6 +40,10 @@ int main()
       std::cerr << "Ошибка в разборе функции. Проверьте выражение. Возможно, вы"
                    " ввели лишний знак вычитания. (Функция precheck() вернула" 
                    " исключение precheck_unary_plus_exception)\n";
+    } catch (Calculator::precheck_empty_exception& e) {
+      std::cerr << "Ошибка в разборе функции. Возможно, введено пустое"
+                   " выражение! (Функция precheck() вернула исключение"
+                   " precheck_empty_exception)\n";
     } catch (Calculator::reverse_polish_notation_brackets_exception& e) {
       std::cerr << "Ошибка в подсчёте баланса скобок. Проверьте выражение."
                    " (Функция reverse_polish_notation() вернула исключение"

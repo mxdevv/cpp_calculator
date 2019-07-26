@@ -16,18 +16,17 @@
 #include <limits>
 #include <string>
 #include <vector>
-#include <map>
 #include <math.h>
 
 #include "calc.h"
 
-void Calculator::read(std::string&& str) {
+void Calculator::read(const std::string&& str) {
   expression = str;
   expression.push_back('\0');
   state = e_state::READED;
 }
 
-void Calculator::read(std::string& str) {
+void Calculator::read(const std::string& str) {
   expression = str;
   expression.push_back('\0');
   state = e_state::READED;
@@ -126,33 +125,33 @@ void Calculator::parse() {
     }
   }
 
-  if (debug) {
+  #ifdef CALCULATOR_DEBUG
     std::cerr << "[parse log]\n";
     std::cerr << "tokens: ";
     tokens_short_check(tokens);
-  }
+  #endif
 
   state = e_state::PARSED;
 }
 
-void Calculator::precheck() {
-  for(Token& tok : tokens) {
+void Calculator::precheck() const {
+  for(const Token& tok : tokens) {
     switch(tok.type) {
       case Token::e_type::STRING:
         throw precheck_unidentified_string_exception();
-        break;
       case Token::e_type::UNARY_PLUS:
         throw precheck_unary_plus_exception();
-        break;
       case Token::e_type::UNARY_MINUS:
         throw precheck_unary_minus_exception();
-        break;
     }
+  }
+  if (tokens.empty()) {
+    throw precheck_empty_exception();
   }
 }
 
-void Calculator::add_token(Token::e_type type, int& parse_start_pos,
-    int& parse_end_pos) {
+void Calculator::add_token(const Token::e_type type, int& parse_start_pos,
+    const int parse_end_pos) {
 
   double val;
   switch(type) {
@@ -176,8 +175,9 @@ void Calculator::add_token(Token::e_type type, int& parse_start_pos,
   parse_start_pos = parse_end_pos;
 }
 
-void Calculator::tokens_short_check(std::vector<Token>& tokens) {
-  for(Token& tkn : tokens) {
+void Calculator::tokens_short_check(
+    const std::vector<Token>& tokens) const {
+  for(const Token& tkn : tokens) {
     switch(tkn.type) {
       case Token::e_type::NONE:
         std::cerr << '?';
@@ -288,7 +288,7 @@ void Calculator::reverse_polish_notation() {
 
   tokens = output;
 
-  if (debug) {
+  #ifdef CALCULATOR_DEBUG
     std::cerr << "[reverse_polish_notation log]\n";
 
     std::cerr << "stack: ";
@@ -299,12 +299,12 @@ void Calculator::reverse_polish_notation() {
 
     std::cerr << "tokens: ";
     tokens_short_check(tokens);
-  }
+  #endif
 
   state = e_state::POLISH_NOTATION_COMPLETE;
 }
 
-int Calculator::operator_precedence(Token::e_type type) {
+int Calculator::operator_precedence(const Token::e_type type) const {
   switch(type) {
     case Token::e_type::OPERATOR_MULT:
     case Token::e_type::OPERATOR_DIV:
@@ -366,7 +366,7 @@ double Calculator::polish_calc() {
     }
   }
   
-  if (debug) {
+  #ifdef CALCULATOR_DEBUG
     std::cerr << "[polish_calc log]\n";
 
     std::cerr << "tokens: ";
@@ -374,7 +374,7 @@ double Calculator::polish_calc() {
 
     std::cerr << "stack: ";
     tokens_short_check(stack);
-  }
+  #endif
 
   if (stack.size() > 0)
     return stack.back().value;
@@ -382,7 +382,7 @@ double Calculator::polish_calc() {
     throw polish_calc_exception();
 }
 
-Calculator::Calculator(std::string&& str) 
+Calculator::Calculator(const std::string&& str) 
     : Calculator() {
   read(std::move(str));
 }
@@ -394,17 +394,17 @@ double Calculator::calculate() {
   polish_calc();
 }
 
-double Calculator::calculate(std::string&& str) {
+double Calculator::calculate(const std::string&& str) {
   read(std::move(str));
   return calculate();
 }
 
-double Calculator::calculate(std::string& str) {
+double Calculator::calculate(const std::string& str) {
   read(str);
   return calculate();
 }
 
-void Calculator::operator << (std::string&& str) {
+void Calculator::operator << (const std::string&& str) {
   read(std::move(str));
 }
 

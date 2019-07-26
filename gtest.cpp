@@ -31,6 +31,56 @@ TEST(Calculator_tests_set, test6) {
       calc.calculate("2*[(11+1)/(9-3)]"));
 }
 
+TEST(Calculator_tests_set, test7_empty) {
+  try {
+    calc.calculate("");
+    FAIL() << "Expected Calculator::precheck_empty_exception";
+  }
+  catch (Calculator::precheck_empty_exception& e) {
+    SUCCEED();
+  }
+}
+
+TEST(Calculator_tests_set, test8_superfluous_pluses) {
+  try {
+    calc.calculate("2+++2");
+    FAIL() << "Expected Calculator::precheck_unary_plus_exception";
+  }
+  catch (Calculator::precheck_unary_plus_exception& e) {
+    SUCCEED();
+  }
+}
+
+TEST(Calculator_tests_set, test9_superfluous_minuses) {
+  try {
+    calc.calculate("2---2");
+    FAIL() << "Expected Calculator::precheck_unary_minus_exception";
+  }
+  catch (Calculator::precheck_unary_minus_exception& e) {
+    SUCCEED();
+  }
+}
+
+TEST(Calculator_tests_set, test10_unidentified_strings) {
+  try {
+    calc.calculate("dog+cat");
+    FAIL() << "Expected Calculator::precheck_unidentified_string_exception";
+  }
+  catch (Calculator::precheck_unidentified_string_exception& e) {
+    SUCCEED();
+  }
+}
+
+TEST(Calculator_tests_set, test11_brackets) {
+  try {
+    calc.calculate("2*(2+2))");
+    FAIL() << "Expected Calculator::reverse_polish_notation_brackets_exception";
+  }
+  catch (Calculator::reverse_polish_notation_brackets_exception& e) {
+    SUCCEED();
+  }
+}
+
 int main(int argc, char* argv[]) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

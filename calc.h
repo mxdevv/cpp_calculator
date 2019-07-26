@@ -11,6 +11,8 @@
  * Ширина кода: 80 символов. Используется 2 пробела, вместо табуляции.
  */
 
+//#define CALCULATOR_DEBUG
+
 #include <string>
 
 class Token;
@@ -24,7 +26,7 @@ public:
     OPERATOR_MULT, OPERATOR_DIV, CONSTANT, VARIABLE, FUNCTION, UNARY_PLUS,
     UNARY_MINUS, OPEN_BRACKET, CLOSE_BRACKET
   };
-  e_type type;
+  e_type type = e_type::NONE;
   double value;
 
   Token() = default;
@@ -42,48 +44,48 @@ class Calculator {
     NONE, READED, PARSED, POLISH_NOTATION_COMPLETE
   };
   e_state state = e_state::NONE;
-  bool debug = false;
 
   /** парсит строку expression на токены **/
   void parse();
 
   /** помогает распознать некорректное выражение **/
-  void precheck();
+  void precheck() const;
 
   /** добавляет токен **/
-  void add_token(Token::e_type type, int& parse_start_pos, int& parse_end_pos);
+  void add_token(const Token::e_type type, int& parse_start_pos,
+      const int parse_end_pos);
 
   /** выводит токены в короткой форме **/
-  void tokens_short_check(std::vector<Token>& tokens);
+  void tokens_short_check(const std::vector<Token>& tokens) const;
 
   /** приводит токены в обратную польскую нотацию **/
   void reverse_polish_notation();
 
   /** возвращает приоритет оператора **/
-  int operator_precedence(Token::e_type type);
+  int operator_precedence(const Token::e_type type) const;
 
   /** считает обратную польскую запись **/
   double polish_calc();
 
 public:
   /** Принимает выражение в виде c++ строки **/
-  void read(std::string&& str);
-  void read(std::string& str);
+  void read(const std::string&& str);
+  void read(const std::string& str);
 
   /** Высчитывает выражение из строки в буфере **/
   double calculate();
 
   /** Тоже самое + read(...) **/
-  double calculate(std::string&& str);
-  double calculate(std::string& str);
+  double calculate(const std::string&& str);
+  double calculate(const std::string& str);
 
   Calculator() = default;
   
   /** Конструктор, как конструктор по-умолчанию + метод read() **/
-  Calculator(std::string&& str);
+  Calculator(const std::string&& str);
 
   /** Перегрузка оператора на ввод, аналог read() **/
-  void operator << (std::string&& str);
+  void operator << (const std::string&& str);
 
   /** Перегрузка оператора на вывод, аналог calculate() **/
   void operator >> (double& value);
@@ -91,6 +93,7 @@ public:
   class precheck_unidentified_string_exception { };
   class precheck_unary_plus_exception { };
   class precheck_unary_minus_exception { };
+  class precheck_empty_exception { };
   class reverse_polish_notation_brackets_exception { };
   class polish_calc_exception { };
 };

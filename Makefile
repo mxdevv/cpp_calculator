@@ -8,5 +8,5 @@ all:
 test:
 	$(CC) $(TEST).cpp -o $(TEST) -lgtest -std=c++17
 
-clear:
+clean:
 	rm $(MAIN) $(TEST)
