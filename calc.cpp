@@ -81,7 +81,8 @@ void Calculator::parse() {
           add_token(prev_state, parse_start_pos, parse_end_pos);
         } else if (prev_state == Token::e_type::INTEGER
             || prev_state == Token::e_type::FLOAT
-            || prev_state == Token::e_type::STRING) {
+            || prev_state == Token::e_type::STRING
+            || prev_state == Token::e_type::CLOSE_BRACKET) {
           cur_state = Token::e_type::OPERATOR_PLUS;
           add_token(prev_state, parse_start_pos, parse_end_pos);
         } else {
@@ -96,7 +97,8 @@ void Calculator::parse() {
           add_token(prev_state, parse_start_pos, parse_end_pos);
         } else if (prev_state == Token::e_type::INTEGER
             || prev_state == Token::e_type::FLOAT
-            || prev_state == Token::e_type::STRING) {
+            || prev_state == Token::e_type::STRING
+            || prev_state == Token::e_type::CLOSE_BRACKET) {
           cur_state = Token::e_type::OPERATOR_MINUS;
           add_token(prev_state, parse_start_pos, parse_end_pos);
         } else {
@@ -163,12 +165,11 @@ void Calculator::add_token(const Token::e_type type, int& parse_start_pos,
       std::stringstream ss;
       ss << expression.substr(parse_start_pos, parse_end_pos - parse_start_pos);
       ss >> val;
-      tokens.push_back(*new Token(Token::e_type::FLOAT, val));
+      tokens.emplace_back(Token::e_type::FLOAT, val);
       break;
     }
     default:
-      tokens.push_back(*new Token(type,
-          std::numeric_limits<double>::quiet_NaN()));
+      tokens.emplace_back(type, std::numeric_limits<double>::quiet_NaN());
       break;
   }
 
@@ -333,8 +334,7 @@ double Calculator::polish_calc() {
         }
         tok3 = stack.back(); stack.pop_back();
         tok2 = stack.back(); stack.pop_back();
-        stack.push_back(*new Token(Token::e_type::FLOAT,
-            tok2.value + tok3.value));
+        stack.emplace_back(Token::e_type::FLOAT, tok2.value + tok3.value);
         break;
       case Token::e_type::OPERATOR_MINUS:
         if (stack.size() < 2) {
@@ -342,8 +342,7 @@ double Calculator::polish_calc() {
         }
         tok3 = stack.back(); stack.pop_back();
         tok2 = stack.back(); stack.pop_back();
-        stack.push_back(*new Token(Token::e_type::FLOAT,
-            tok2.value - tok3.value));
+        stack.emplace_back(Token::e_type::FLOAT, tok2.value - tok3.value);
         break;
       case Token::e_type::OPERATOR_DIV:
         if (stack.size() < 2) {
@@ -351,8 +350,7 @@ double Calculator::polish_calc() {
         }
         tok3 = stack.back(); stack.pop_back();
         tok2 = stack.back(); stack.pop_back();
-        stack.push_back(*new Token(Token::e_type::FLOAT,
-            tok2.value / tok3.value));
+        stack.emplace_back(Token::e_type::FLOAT, tok2.value / tok3.value);
         break;
       case Token::e_type::OPERATOR_MULT:
         if (stack.size() < 2) {
@@ -360,8 +358,7 @@ double Calculator::polish_calc() {
         }
         tok3 = stack.back(); stack.pop_back();
         tok2 = stack.back(); stack.pop_back();
-        stack.push_back(*new Token(Token::e_type::FLOAT,
-            tok2.value * tok3.value));
+        stack.emplace_back(Token::e_type::FLOAT, tok2.value * tok3.value);
         break;
     }
   }
